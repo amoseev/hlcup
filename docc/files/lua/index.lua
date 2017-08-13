@@ -4,7 +4,7 @@ local r = router.new()
 r:match({
 GET = {
   ["/users/:id"]   = function(params)
-      require 'app.controller.UserController'
+      require 'app.Controller.UserController'
       local controller = UserController()
       controller.get(params.id)
   end,

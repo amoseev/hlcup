@@ -48,7 +48,7 @@ function UserController()
         local userRD, err = red:hgetall("users:" .. userId)
 
         if err == nil then
-            require "app.domain.users.User"
+            require "app.Domain.Users.User"
             local user = User(userRD)
             if user.isEmpty() then
                 ngx.status = 404
