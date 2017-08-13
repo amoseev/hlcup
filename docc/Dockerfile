@@ -43,11 +43,11 @@ WORKDIR /var/multrix
 RUN chown www-data:www-data /var/multrix
 RUN service redis-server start
 
-#мое
 ADD phpapp/web/ /var/multrix/web/
 ADD files/lua/ /var/multrix/lua/
 RUN chown -R www-data:www-data /var/multrix
-#
+COPY data/data.zip /tmp/data/data.zip
+RUN unzip -o /tmp/data/data.zip -d /var/multrix
 
 # Expose ports
 EXPOSE 80

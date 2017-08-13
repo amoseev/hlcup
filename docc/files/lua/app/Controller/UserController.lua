@@ -38,7 +38,6 @@ function UserController()
     -- the new instance
     local self = {
         -- public fields go in the instance table
-        public_field = 0
     }
 
     function self.get(userId)
@@ -49,13 +48,13 @@ function UserController()
 
         if err == nil then
             require "app.Domain.Users.User"
-            local user = User(userRD)
-            if user.isEmpty() then
+            if canCreateUserFromRedisData(userRD) then
+                local user = createUserFromRedisData(userRD)
+                ngx.say(user.toJson())
+            else
                 ngx.status = 404
                 ngx.print("Not found!")
                 return
-            else
-                ngx.say(user.toJson())
             end
         else
             ngx.status = ngx.ERROR
