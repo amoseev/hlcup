@@ -8,7 +8,7 @@ RUN apt-get -qq update
 
 # Install
 RUN apt-get -y --force-yes install wget curl git unzip supervisor g++ make nginx mysql-server mysql-client redis-server php5-cli php5-fpm php5-dev php5-mysql php5-curl php5-intl php5-mcrypt php5-memcache php5-imap php5-sqlite
-RUN apt-get -y --force-yes install nginx-extras lua-nginx-redis
+RUN apt-get -y --force-yes install nginx-extras lua-nginx-redis lua-cjson nano
 
 RUN bash -c "wget http://getcomposer.org/composer.phar && mv composer.phar /usr/local/bin/composer && chmod +x /usr/local/bin/composer"
 

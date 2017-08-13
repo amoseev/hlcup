@@ -4,8 +4,8 @@ local r = router.new()
 r:match({
 GET = {
   ["/users/:id"]   = function(params)
-      require 'app.controller.userController'
-      controller = userController()
+      require 'app.controller.UserController'
+      local controller = UserController()
       controller.get(params.id)
   end,
   ["/users/:id/visits"] = function(params) ngx.print('user visits for user with id = ' .. params.id) end
