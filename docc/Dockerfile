@@ -35,7 +35,8 @@ ADD files/site.conf /etc/nginx/sites-available/default
 ADD files/supervisord.conf /etc/supervisor/supervisord.conf
 ADD files/php-fpm.conf /etc/php5/fpm/php-fpm.conf
 ADD files/start.sh /usr/local/bin/start.sh
-
+#replacce default redis.conf
+COPY files/redis.conf /etc/redis/redis.conf
 
 WORKDIR /var/multrix
 RUN chown www-data:www-data /var/multrix
