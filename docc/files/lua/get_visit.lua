@@ -1,4 +1,0 @@
----
---- Created by artem.
---- DateTime: 13.08.17 4:16
----

@@ -31,20 +31,21 @@ RUN sed -i "s/;daemonize = yes/daemonize = no/" /etc/php5/fpm/php-fpm.conf
 # nginx conf
 RUN echo "\ndaemon off;" >> /etc/nginx/nginx.conf
 
-ADD files/site.conf /etc/nginx/sites-available/default
-ADD files/supervisord.conf /etc/supervisor/supervisord.conf
-ADD files/php-fpm.conf /etc/php5/fpm/php-fpm.conf
+ADD files/conf/site.conf /etc/nginx/sites-available/default
+ADD files/conf/supervisord.conf /etc/supervisor/supervisord.conf
+ADD files/conf/php-fpm.conf /etc/php5/fpm/php-fpm.conf
 ADD files/start.sh /usr/local/bin/start.sh
-#replacce default redis.conf
-COPY files/redis.conf /etc/redis/redis.conf
+
+COPY files/conf/redis.conf /etc/redis/redis.conf
+COPY files/conf/nginx.conf /etc/nginx/nginx.conf
 
 WORKDIR /var/multrix
 RUN chown www-data:www-data /var/multrix
 RUN service redis-server start
 
 #мое
-ADD phpapp/web/* /var/multrix/web/
-ADD files/lua/* /var/multrix/lua/
+ADD phpapp/web/ /var/multrix/web/
+ADD files/lua/ /var/multrix/lua/
 RUN chown -R www-data:www-data /var/multrix
 #
 
