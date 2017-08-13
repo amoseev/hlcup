@@ -8,6 +8,7 @@ RUN apt-get -qq update
 
 # Install
 RUN apt-get -y --force-yes install wget curl git unzip supervisor g++ make nginx mysql-server mysql-client redis-server php5-cli php5-fpm php5-dev php5-mysql php5-curl php5-intl php5-mcrypt php5-memcache php5-imap php5-sqlite
+RUN apt-get -y --force-yes install nginx-extras lua-nginx-redis
 
 RUN bash -c "wget http://getcomposer.org/composer.phar && mv composer.phar /usr/local/bin/composer && chmod +x /usr/local/bin/composer"
 
@@ -30,7 +31,7 @@ RUN sed -i "s/;daemonize = yes/daemonize = no/" /etc/php5/fpm/php-fpm.conf
 # nginx conf
 RUN echo "\ndaemon off;" >> /etc/nginx/nginx.conf
 
-ADD files/default /etc/nginx/sites-available/default
+ADD files/site.conf /etc/nginx/sites-available/default
 ADD files/supervisord.conf /etc/supervisor/supervisord.conf
 ADD files/php-fpm.conf /etc/php5/fpm/php-fpm.conf
 ADD files/start.sh /usr/local/bin/start.sh
@@ -42,14 +43,14 @@ RUN service redis-server start
 
 #мое
 ADD phpapp/web/* /var/multrix/web/
+ADD files/lua/* /var/multrix/lua/
 RUN chown -R www-data:www-data /var/multrix
 #
 
 # Expose ports
 EXPOSE 80
 EXPOSE 443
-
-
+EXPOSE 6379
 
 
 RUN chmod +x /usr/local/bin/start.sh
