@@ -81,7 +81,7 @@ end
 function canCreateUserFromTableParsedJson(tableUser)
     local required = {"id", "birth_date", "gender", "first_name", "last_name", "email"}
 
-    for key,field in pairs(required) do --actualcode
+    for key,field in pairs(required) do
         if tableUser[field] == nil then
             return false
         end
