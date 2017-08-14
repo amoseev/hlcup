@@ -1,11 +1,11 @@
 -- @link http://lua-users.org/wiki/ObjectOrientationTutorial
 
 
-local function string(o)
+function vd_string(o)
     return '"' .. tostring(o) .. '"'
 end
 
-local function recurse(o, indent)
+function vd_recurse(o, indent)
     if indent == nil then indent = '' end
     local indent2 = indent .. '  '
     if type(o) == 'table' then
@@ -13,22 +13,22 @@ local function recurse(o, indent)
         local first = true
         for k,v in pairs(o) do
             if first == false then s = s .. ', \n' end
-            if type(k) ~= 'number' then k = string(k) end
-            s = s .. indent2 .. '[' .. k .. '] = ' .. recurse(v, indent2)
+            if type(k) ~= 'number' then k = vd_string(k) end
+            s = s .. indent2 .. '[' .. k .. '] = ' .. vd_recurse(v, indent2)
             first = false
         end
         return s .. '\n' .. indent .. '}'
     else
-        return string(o)
+        return vd_string(o)
     end
 end
 
-local function var_dump(...)
+function var_dump(...)
     local args = {...}
     if #args > 1 then
         var_dump(args)
     else
-        ngx.say(recurse(args[1]))
+        ngx.say(vd_recurse(args[1]))
     end
 end
 
