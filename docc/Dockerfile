@@ -29,7 +29,7 @@ RUN service redis-server start
 ADD files/lua/ /var/multrix/lua/
 
 RUN chown -R www-data:www-data /var/multrix
-#todo deploy - remove
+#todo-deploy - remove
 COPY data/data.zip /tmp/data/data.zip
 
 EXPOSE 80 6379
