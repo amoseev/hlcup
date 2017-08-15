@@ -29,19 +29,10 @@ RUN service redis-server start
 ADD files/lua/ /var/multrix/lua/
 
 RUN chown -R www-data:www-data /var/multrix
+#todo deploy - remove
 COPY data/data.zip /tmp/data/data.zip
-RUN unzip -o /tmp/data/data.zip -d /var/multrix
 
-# Expose ports
-EXPOSE 80
-EXPOSE 443
-EXPOSE 6379
-
+EXPOSE 80 6379
 
 RUN chmod +x /usr/local/bin/start.sh
-# Default command for container, start supervisor
-CMD ["supervisord", "--nodaemon"]
-CMD /etc/init.d/supervisor restart && bash /usr/local/bin/start.sh
-
-
-#CMD unzip -o /tmp/data/data.zip -d /app/data/ && ./app
+CMD unzip -o /tmp/data/data.zip -d /var/multrix && /etc/init.d/supervisor restart --nodaemon && bash /usr/local/bin/start.sh
