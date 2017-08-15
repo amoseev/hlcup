@@ -32,34 +32,38 @@ end
 local router = require 'vendor.router'
 local r = router.new()
 
+local function getPostBody()
+    for key, val in pairs(ngx.req.get_post_args()) do
+        return key
+    end
+end
+
 r:match({
 GET = {
-  ["/users/:id"]   = function(params)
+  ["/users/:id"] = function(params)
       require 'app.Controller.UserController'
       local controller = UserController()
-      controller.get(params.id)
+      return controller.get(params.id)
   end,
-  ["/users/:id/visits"] = function(params) ngx.print('user visits for user with id = ' .. params.id) end
+  ["/users/:id/visits"] = function(params)
+      ngx.print('user visits for user with id = ' .. params.id)
+  end
 },
 POST = {
   ["/users/:id"] = function(params)
-    ngx.print('user update for user with id = ' .. params.id)
+      require 'app.Controller.UserController'
+      local controller = UserController()
+      return controller.update(params.id, getPostBody())
   end
 }
 })
-
-
-local postargs ={}
-if (ngx.var.request_method == 'POST') then
-    postargs = ngx.req.get_post_args()
-end
 
 
 local ok, errmsg = r:execute(
     ngx.var.request_method,
     ngx.var.request_uri,
     ngx.req.get_uri_args(),  -- all these parameters
-    postargs, -- will be merged in order
+    ngx.req.get_post_args(), -- will be merged in order
     {other_arg = 1} -- into a single "params" table
 )
 
