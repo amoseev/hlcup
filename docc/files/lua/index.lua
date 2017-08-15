@@ -2,6 +2,7 @@ function vd_string(o)
     return '"' .. tostring(o) .. '"'
 end
 
+
 function vd_recurse(o, indent)
     if indent == nil then indent = '' end
     local indent2 = indent .. '  '
@@ -29,6 +30,21 @@ function var_dump(...)
     end
 end
 
+local function getPostBody()
+    for key, val in pairs(ngx.req.get_post_args()) do
+        return key
+    end
+end
+
+function is_identity(n)
+    -- todo 32 битное целое
+    if tonumber(n) ~= nil then
+        return true
+    end;
+
+    return false
+end
+
 local router = require 'vendor.router'
 local r = router.new()
 
@@ -43,7 +59,9 @@ GET = {
 },
 POST = {
   ["/users/:id"] = function(params)
-    ngx.print('user update for user with id = ' .. params.id)
+      require 'app.Controller.UserController'
+      local controller = UserController()
+      return controller.update(params.id, getPostBody())
   end
 }
 })

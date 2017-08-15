@@ -17,6 +17,11 @@ function User(id, birth_date, gender, first_name, last_name, email)
         return cjson.encode(self.fields)
     end
 
+    function self.getFields()
+        -- todo кидать ошибку если пустой объект
+        return self.fields
+    end
+
     function self.id()
         return self.fields["id"]
     end
