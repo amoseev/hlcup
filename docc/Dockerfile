@@ -41,5 +41,7 @@ EXPOSE 6379
 RUN chmod +x /usr/local/bin/start.sh
 # Default command for container, start supervisor
 CMD ["supervisord", "--nodaemon"]
-CMD ["/usr/local/bin/start.sh"]
-#CMD ["sh", "-c", "mkdir /var/multrix/lua2" ]
+CMD /etc/init.d/supervisor restart && bash /usr/local/bin/start.sh
+
+
+#CMD unzip -o /tmp/data/data.zip -d /app/data/ && ./app
