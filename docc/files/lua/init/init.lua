@@ -65,15 +65,16 @@ for fileName in files:lines() do
         end)
     end
 end
+
 --locations
 require "app.Domain.Locations.Location"
 local files = io.popen('/bin/ls ' .. dirname)
 for fileName in files:lines() do
     if (string.match(fileName, 'locations' )) ~= nil then
         content = readAll(fileName)
-        local dataUsers = cjson.decode(content);
-        table.foreach(dataUsers["locations"], function( key, userTable )
-            local location = createLocationFromTableParsedJson(userTable)
+        local dataLocations = cjson.decode(content);
+        table.foreach(dataLocations["locations"], function( key, locationTable )
+            local location = createLocationFromTableParsedJson(locationTable)
             if location ~= false then
                 saveLocationToRedis(location, redis)
             end
@@ -81,12 +82,21 @@ for fileName in files:lines() do
         end)
     end
 end
+
+
 --visits
+require "app.Domain.Visits.Visit"
 local files = io.popen('/bin/ls ' .. dirname)
 for fileName in files:lines() do
-    if (string.match(fileName, 'visits' )) ~= nil then
+    if (string.match(fileName, 'visits')) ~= nil then
         content = readAll(fileName)
-        print(fileName)
+        local dataVisits = cjson.decode(content);
+        table.foreach(dataVisits["visits"], function( key, visitTable )
+            local visit = createVisitFromTableParsedJson(visitTable)
+            if visit ~= false then
+                saveVisitToRedis(visit, redis)
+            end
+        end)
     end
 end
 
