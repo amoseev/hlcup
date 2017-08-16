@@ -55,12 +55,22 @@ GET = {
       local controller = UserController()
       controller.get(params.id)
   end,
+  ["/locations/:id"]   = function(params)
+      require 'app.Controller.LocationController'
+      local controller = LocationController()
+      controller.get(params.id)
+  end,
   ["/users/:id/visits"] = function(params) ngx.print('user visits for user with id = ' .. params.id) end
 },
 POST = {
   ["/users/:id"] = function(params)
       require 'app.Controller.UserController'
       local controller = UserController()
+      return controller.update(params.id, getPostBody())
+  end,
+  ["/locations/:id"] = function(params)
+      require 'app.Controller.LocationController'
+      local controller = LocationController()
       return controller.update(params.id, getPostBody())
   end
 }
