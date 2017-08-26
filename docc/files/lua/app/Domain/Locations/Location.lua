@@ -59,18 +59,19 @@ end
 
 function createLocationFromRedisData(redisData)
     if (canCreateLocationFromRedisData(redisData)) then
-        local locationObjHashTable = {};
-        local propertyTemp;
-        local isPropertyTemp = true;
-        for k,v in pairs(redisData) do
-            if isPropertyTemp then
-                propertyTemp = v
-                isPropertyTemp = false
-            else
-                locationObjHashTable[propertyTemp] = v
-                isPropertyTemp = true
-            end
-        end
+        --local locationObjHashTable = {};
+        --local propertyTemp;
+        --local isPropertyTemp = true;
+        --for k,v in pairs(redisData) do
+        --    if isPropertyTemp then
+        --        propertyTemp = v
+        --        isPropertyTemp = false
+        --    else
+        --        locationObjHashTable[propertyTemp] = v
+        --        isPropertyTemp = true
+        --    end
+        --end
+        local locationObjHashTable = redisData
         return Location(locationObjHashTable['id'], locationObjHashTable["distance"], locationObjHashTable["city"], locationObjHashTable["place"], locationObjHashTable["country"])
     else
         return false;

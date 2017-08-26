@@ -1,4 +1,6 @@
 -- @link http://lua-users.org/wiki/ObjectOrientationTutorial
+require "app.Domain.Locations.Location"
+
 
 function LocationController()
     -- the new instance
@@ -12,22 +14,13 @@ function LocationController()
         local redis = require "nginx.redis"
         local red = redis:new()
         local ok, err = red:connect("0.0.0.0", 6379)
-        local locationRD, err = red:hgetall("locations:" .. locationId)
+        local location = createLocationFromRedisId(locationId, redis)
 
-        if err == nil then
-            require "app.Domain.Locations.Location"
-
-            if canCreateLocationFromRedisData(locationRD) then
-                local location = createLocationFromRedisData(locationRD)
-                ngx.say(location.toJson())
-            else
-                ngx.status = 404
-                ngx.print("Not found!")
-                return
-            end
+        if location then
+            ngx.say(location.toJson())
         else
-            ngx.status = ngx.ERROR
-            ngx.log(ngx.ERROR, err)
+            ngx.status = 404
+            ngx.print("Not found!")
         end
 
     end

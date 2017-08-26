@@ -133,9 +133,11 @@ function saveVisitToRedis(visit, redis)
         key = "user_visits:" ..  visit.user()
         redis:sadd(key, visit.id())
 
+        local location = createLocationFromRedisId(visit.location(), redis)
+
         --список мест, которые посетил пользователь для конкретной локации
-        -- key = "user_visits:" ..  visit.user().. ":location:" .. visit.location()
-        -- redis:sadd(key, visit.id())
+        key = "user_visits:" ..  visit.user().. ":country:" .. location.country()
+        redis:sadd(key, visit.id())
 
         -- упорядоченный по дате список визитов пользователя
         key = "user_visits:" ..  visit.user().. ":visited_at"
