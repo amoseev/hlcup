@@ -48,19 +48,48 @@ local function getVisitIds(user, searchParams, redis)
     local visitIds
     -- если только диапазон - то просто упорядоченные визиты пользователя
     if (toDistance == false and country == false) then
-       -- var_dump(searchParams)
         visitIds =  redis:zrangebyscore("user_visits:" .. user.id() ..":visited_at", fromDate , toDate)
+        if (visitIds == false or visitIds == nil) then
+            return {}
+        end
+        return visitIds
     end
-    -- если только диапазон - то просто упорядоченные визиты пользователя
-    if (toDistance == false and country ~= false) then
-        local tmpkey = "tmpkey_" .. math.random(1000000000)
-        local keycountry = "user_visits:" .. user.id() .. ":country:" .. country
-        local keyDate =  "user_visits:" .. user.id() .. ":visited_at"
 
-        local ok, err = redis:zinterstore(tmpkey, 2, keycountry, keyDate, "AGGREGATE", "MAX")
-        visitIds =  redis:zrangebyscore(tmpkey, fromDate , toDate)
-        redis:del(tmpkey)
+    -- + дистанция
+    local tmpkeydist
+    if (toDistance ~= false) then
+        local keyDistance = "user_visits:" .. user.id() .. ":distance"
+
+        local VisitIdsForDistance = redis:zrangebyscore(keyDistance, "-inf", toDistance)
+        if (VisitIdsForDistance == false or VisitIdsForDistance == nil) then
+            return {}
+        end
+        tmpkeydist = "tmpkeydist_" .. math.random(1000000000)
+        redis:sadd(tmpkeydist, unpack(VisitIdsForDistance));
     end
+
+    local tmpkey = "tmpkey_" .. math.random(1000000000)
+    local keyDate =  "user_visits:" .. user.id() .. ":visited_at"
+
+    -- + страна
+    if (country ~= false) then
+        local keycountry = "user_visits:" .. user.id() .. ":country:" .. country
+
+        if (toDistance ~= false) then
+            redis:zinterstore(tmpkey, 3, keycountry, keyDate, tmpkeydist, "AGGREGATE", "MAX")
+            redis:del(tmpkeydist)
+        else
+            redis:zinterstore(tmpkey, 2, keycountry, keyDate, "AGGREGATE", "MAX")
+        end
+        visitIds =  redis:zrangebyscore(tmpkey, fromDate , toDate)
+    else
+        redis:zinterstore(tmpkey, 2, keyDate, tmpkeydist, "AGGREGATE", "MAX")
+        redis:del(tmpkeydist)
+        visitIds =  redis:zrangebyscore(tmpkey, fromDate , toDate)
+    end
+
+    redis:del(tmpkey)
+
 
     if (visitIds == nil) then
         visitIds = {}
@@ -114,7 +143,7 @@ function SearchUserVisitsController()
                 visit = createVisitFromRedisId(visitId, redis)
                 location = createLocationFromRedisId(visit.location(), redis)
 
-                visit_responses[k] = {mark = visit.mark(), visited_at= visit.visited_at(),  place = location.place(), distance = location.distance(), country = location.country()}
+                visit_responses[k] = {visit_id = visit.id(), mark = visit.mark(), visited_at= visit.visited_at(),  place = location.place(), distance = location.distance(), country = location.country()}
             end
 
             if (isEmptyArray(visit_responses)) then

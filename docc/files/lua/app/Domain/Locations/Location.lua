@@ -116,4 +116,7 @@ function saveLocationToRedis(location, redis)
     -- todo При смене странцы локации изменить
     -- key = "user_visits:" ..  visit.user().. ":country:" .. location.country()
     -- docc/files/lua/app/Domain/Visits/Visit.lua:137
+    --
+    --key = "user_visits:" ..  visit.user().. ":distance:" .. location.distance()
+    --redis:zadd(key, location.distance(), visit.id())
 end
