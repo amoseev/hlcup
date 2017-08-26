@@ -53,13 +53,13 @@ local function getVisitIds(user, searchParams, redis)
     end
     -- если только диапазон - то просто упорядоченные визиты пользователя
     if (toDistance == false and country ~= false) then
-        var_dump(2)
         local tmpkey = "tmpkey_" .. math.random(1000000000)
         local keycountry = "user_visits:" .. user.id() .. ":country:" .. country
         local keyDate =  "user_visits:" .. user.id() .. ":visited_at"
 
         local ok, err = redis:zinterstore(tmpkey, 2, keycountry, keyDate, "AGGREGATE", "MAX")
         visitIds =  redis:zrangebyscore(tmpkey, fromDate , toDate)
+        redis:del(tmpkey)
     end
 
     if (visitIds == nil) then
