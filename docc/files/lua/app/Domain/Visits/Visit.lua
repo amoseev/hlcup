@@ -96,7 +96,7 @@ function canCreateVisitFromTableParsedJson(tableVisit)
     local required = {"id", "user", "location", "visited_at", "mark"}
 
     for key,field in pairs(required) do
-        if tableVisit[field] == nil then
+        if (tableVisit[field] == nil or tableVisit[field] == "null" or isEmptyString(tableVisit[field])) then
             return false
         end
     end
@@ -133,6 +133,7 @@ function saveVisitToRedis(visit, redis)
         key = "user_visits:" ..  visit.user().. ":visited_at"
         redis:zadd(key, visit.visited_at(), visit.id())
 
+
         local location = createLocationFromRedisId(visit.location(), redis)
         --список мест, которые посетил пользователь для конкретной страны
         key = "user_visits:" ..  visit.user().. ":country:" .. location.country()
@@ -141,7 +142,5 @@ function saveVisitToRedis(visit, redis)
         --упорядоченный по расстоянию список визитов пользователя
         key = "user_visits:" ..  visit.user().. ":distance"
         redis:zadd(key, location.distance(), visit.id())
-
-
     end
 end

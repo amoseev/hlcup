@@ -54,7 +54,6 @@ end
 function createUserFromRedisId(userId, redis)
 
     local userRD, err = redis:hgetall("users:" .. userId)
-
     if err == nil then
         return createUserFromRedisData(userRD)
     else
@@ -99,7 +98,7 @@ function canCreateUserFromTableParsedJson(tableUser)
     local required = {"id", "birth_date", "gender", "first_name", "last_name", "email"}
 
     for key,field in pairs(required) do
-        if tableUser[field] == nil then
+        if (tableUser[field] == nil or tableUser[field] == "null" or isEmptyString(tableUser[field])) then
             return false
         end
     end

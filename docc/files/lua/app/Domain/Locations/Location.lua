@@ -99,7 +99,7 @@ function canCreateLocationFromTableParsedJson(tableLocation)
     local required = {"id", "distance", "city", "place", "country"}
 
     for key,field in pairs(required) do
-        if tableLocation[field] == nil then
+        if (tableLocation[field] == nil or tableLocation[field] == "null" or isEmptyString(tableLocation[field])) then
             return false
         end
     end

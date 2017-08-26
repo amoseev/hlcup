@@ -11,13 +11,6 @@ require "app.Domain.Users.User"
 require "app.Domain.Locations.Location"
 require "app.Domain.Visits.Visit"
 
-local function isemptyString(s)
-    return s == nil or s == ''
-end
-
-local function isEmptyArray(arr)
-    return next(arr) == nil
-end
 
 local function getVisitIds(user, searchParams, redis)
     local fromDate, toDate, country, toDistance
@@ -121,7 +114,7 @@ function SearchUserVisitsController()
                 searchParams["toDate"] = tonumber(v)
             end
             if (k == "country") then
-                if isemptyString(v) then ngx.exit(400) end
+                if isEmptyString(v) then ngx.exit(400) end
                 searchParams["country"] = (v)
             end
             if (k == "toDistance") then

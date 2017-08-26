@@ -45,6 +45,14 @@ function is_identity(n)
     return false
 end
 
+function isEmptyString(s)
+    return s == nil or s == ''
+end
+
+function isEmptyArray(arr)
+    return next(arr) == nil
+end
+
 local router = require 'vendor.router'
 local r = router.new()
 
@@ -84,6 +92,11 @@ r:match({
             require 'app.Controller.UserController'
             local controller = UserController()
             return controller.update(params.id, getPostBody())
+        end,
+        ["/users/new"] = function(params)
+            require 'app.Controller.UserController'
+            local controller = UserController()
+            return controller.update("new", getPostBody())
         end,
         ["/locations/:id"] = function(params)
             require 'app.Controller.LocationController'
