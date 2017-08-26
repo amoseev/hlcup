@@ -45,6 +45,18 @@ function Visit(id, user, location, visited_at, mark)
     return self
 end
 
+function createVisitFromRedisId(visitId, redis)
+
+    local visitRD, err = redis:hgetall("visits:" .. visitId)
+
+    if err == nil then
+        return createVisitFromRedisData(visitRD)
+    else
+        return false;
+    end
+end
+
+
 function createVisitFromRedisData(redisData)
     if (canCreateVisitFromRedisData(redisData)) then
         local visitObjHashTable = {};
@@ -91,8 +103,40 @@ function canCreateVisitFromTableParsedJson(tableVisit)
 end
 
 function saveVisitToRedis(visit, redis)
+    local key
     if visit ~= false then
-        local key = "visits:" ..  visit.id()
-        redis:hmset(key, "id", visit.id(), "user",visit.user(), "location", visit.location(), "visited_at",visit.visited_at(),  "mark", visit.mark())
+
+        local visitRD, err = redis:hgetall("visits:" .. visit.id())
+        if err == nil then
+            local visitOld = createVisitFromRedisData(visitRD)
+            if (visitOld ~= false) then
+                --Общий список мест, которые посетил пользователь.
+                key = "user_visits:" ..  visit.user()
+                redis:srem(key, visit.id())
+
+                --список мест, которые посетил пользователь для конкретной локации
+                key = "user_visits:" ..  visit.user().. ":location:" .. visit.location()
+                redis:srem(key, visit.id())
+
+                -- упорядоченный по дате список визитов пользователя
+                key = "user_visits:" ..  visit.user().. ":visited_at:" .. visit.visited_at()
+                redis:zrem(key, visit.id())
+            end
+        end
+
+        key = "visits:" ..  visit.id()
+        redis:hmset(key, visit.getFields())
+
+        --Общий список мест, которые посетил пользователь.
+        key = "user_visits:" ..  visit.user()
+        redis:sadd(key, visit.id())
+
+        --список мест, которые посетил пользователь для конкретной локации
+        key = "user_visits:" ..  visit.user().. ":location:" .. visit.location()
+        redis:sadd(key, visit.id())
+
+        -- упорядоченный по дате список визитов пользователя
+        key = "user_visits:" ..  visit.user().. ":visited_at"
+        redis:zadd(key, visit.visited_at(), visit.id())
     end
 end

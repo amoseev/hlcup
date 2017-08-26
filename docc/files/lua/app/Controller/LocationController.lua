@@ -36,9 +36,9 @@ function LocationController()
         -- todo обработать изменение страны
         if is_identity(locationId) then else ngx.exit(400)  end
 
-        local redis = require "nginx.redis"
-        local red = redis:new()
-        local ok, err = red:connect("0.0.0.0", 6379)
+        local redisIns = require "nginx.redis"
+        local redis = redisIns:new()
+        local ok, err = redis:connect("0.0.0.0", 6379)
 
         if err == nil then
             require "app.Domain.Locations.Location"
@@ -49,7 +49,7 @@ function LocationController()
                 tableLocation["id"] = locationId
                 local location = createLocationFromTableParsedJson(tableLocation)
                 if location then
-                    return red:hmset("locations:" .. locationId, location.getFields())
+                    saveLocationToRedis(location, redis)
                 else
                     -- ngx.log(ngx.ERROR, "cant create location from json string " .. jsonString)
                     ngx.exit(400)

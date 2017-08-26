@@ -116,7 +116,7 @@ if ok then
 else
     ngx.print("Not found!")
     -- TODO REMOVE
-    ngx.log(ngx.ERROR, errmsg)
+    var_dump( errmsg)
     ngx.exit(404)
 end
 

@@ -45,6 +45,18 @@ function Location(id, distance, city, place, country)
     return self
 end
 
+function createLocationFromRedisId(locationId, redis)
+
+    local visitRD, err = redis:hgetall("locations:" .. locationId)
+
+    if err == nil then
+        return createLocationFromRedisData(visitRD)
+    else
+        return false;
+    end
+end
+
+
 function createLocationFromRedisData(redisData)
     if (canCreateLocationFromRedisData(redisData)) then
         local locationObjHashTable = {};

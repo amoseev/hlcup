@@ -48,7 +48,7 @@ function VisitController()
                 tableVisit["id"] = visitId
                 local visit = createVisitFromTableParsedJson(tableVisit)
                 if visit then
-                    return red:hmset("visits:" .. visitId, visit.getFields())
+                    saveVisitToRedis(visit, redis)
                 else
                     -- ngx.log(ngx.ERROR, "cant create visit from json string " .. jsonString)
                     ngx.exit(400)
