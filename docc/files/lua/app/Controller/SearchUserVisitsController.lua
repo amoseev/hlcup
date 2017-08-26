@@ -57,10 +57,9 @@ local function getVisitIds(user, searchParams, redis)
         local tmpkey = "tmpkey_" .. math.random(1000000000)
         local keycountry = "user_visits:" .. user.id() .. ":country:" .. country
         local keyDate =  "user_visits:" .. user.id() .. ":visited_at"
-        visitIds = redis:zinterstore(tmpkey, 2, keycountry, keyDate, "AGGREGATE MAX")
 
-        var_dump({visitIds = visitIds})
-        ngx.exit(200)
+        local ok, err = redis:zinterstore(tmpkey, 2, keycountry, keyDate, "AGGREGATE", "MAX")
+        visitIds =  redis:zrangebyscore(tmpkey, fromDate , toDate)
     end
 
     if (visitIds == nil) then
