@@ -7,6 +7,9 @@
 -- country - название страны, в которой находятся интересующие достопримечательности
 -- toDistance - возвращать только те места, у которых расстояние от города меньше этого параметра
 --
+require "app.Domain.Users.User"
+require "app.Domain.Locations.Location"
+require "app.Domain.Visits.Visit"
 
 function SearchUserVisitsController()
     -- the new instance
@@ -15,43 +18,64 @@ function SearchUserVisitsController()
     }
 
     function self.search(userId)
-        if is_identity(userId) then else ngx.exit(400) end
+
+        if is_identity(userId) then else ngx.exit(404) end
+
+        local searchParams = {}
+        for k,v in pairs(ngx.req.get_uri_args()) do
+            if (k == "fromDate") then
+                if is_identity(v) then else ngx.exit(400) end
+                searchParams["fromDate"] = tonumber(v)
+            end
+            if (k == "toDate") then
+                if is_identity(v) then else ngx.exit(400) end
+                searchParams["toDate"] = tonumber(v)
+            end
+            if (k == "country") then
+                searchParams["country"] = v
+            end
+            if (k == "toDistance") then
+                if is_identity(v) then else ngx.exit(400) end
+                searchParams["toDistance"] = tonumber(v)
+            end
+        end
 
         local redisIns = require "nginx.redis"
         local redis = redisIns:new()
         local ok, err = redis:connect("0.0.0.0", 6379)
-        local userRD, err = redis:hgetall("users:" .. userId)
+        local user = createUserFromRedisId(userId, redis)
 
-        if err == nil then
-            require "app.Domain.Users.User"
-            require "app.Domain.Locations.Location"
-            require "app.Domain.Visits.Visit"
-
-            if canCreateUserFromRedisData(userRD) then
-                local  user = createUserFromRedisData(userRD)
-
-                local visitIds = redis:zrangebyscore("user_visits:" .. user.id() ..":visited_at", "-inf", "+inf")
-
-                local visit_responses = {};
-
-                local visit, location
-                for k,visitId in pairs(visitIds) do
-                    visit = createVisitFromRedisId(visitId, redis)
-                    location = createLocationFromRedisId(visit.location(), redis)
-                    visit_responses[k] = {mark = 2, visited_at= visit.visited_at(),  place = location.place()}
-                end
-
-                local cjson = require('cjson')
-                local content= cjson.encode({visits = visit_responses})
-                ngx.say(content)
+        if user then
+            local fromDate
+            if (searchParams["fromDate"]) then
+                fromDate = searchParams["fromDate"]
             else
-                ngx.status = 404
-                ngx.print("Not found!")
-                return
+                fromDate = "-inf"
             end
+
+            local toDate
+            if (searchParams["toDate"]) then
+                toDate = searchParams["toDate"]
+            else
+                toDate = "+inf"
+            end
+
+            local visitIds = redis:zrangebyscore("user_visits:" .. user.id() ..":visited_at", fromDate , toDate)
+
+
+            local visit_responses = {};
+            local visit, location
+            for k,visitId in pairs(visitIds) do
+                visit = createVisitFromRedisId(visitId, redis)
+                location = createLocationFromRedisId(visit.location(), redis)
+                visit_responses[k] = {mark = visit.mark(), visited_at= visit.visited_at(),  place = location.place()}
+            end
+
+            local cjson = require('cjson')
+            ngx.say(cjson.encode({visits = visit_responses}))
         else
-            ngx.status = ngx.ERROR
-            ngx.log(ngx.ERROR, err)
+            ngx.status = 404
+            ngx.print("Not found!")
         end
 
     end

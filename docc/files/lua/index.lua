@@ -65,6 +65,7 @@ r:match({
             local controller = VisitController()
             return controller.get(params.id, getPostBody())
         end,
+
         -- поиск визитов юзера
         ["/users/:id/visits"] = function(params)
             require 'app.Controller.SearchUserVisitsController'
@@ -105,7 +106,7 @@ end
 
 
 local ok, errmsg = r:execute(ngx.var.request_method,
-    ngx.var.request_uri,
+    ngx.var.uri,
     ngx.req.get_uri_args(), -- all these parameters
     postargs, -- will be merged in order
     { other_arg = 1 } -- into a single "params" table))
@@ -114,6 +115,7 @@ local ok, errmsg = r:execute(ngx.var.request_method,
 if ok then
     --
 else
+    ngx.status = 404
     ngx.print("Not found!")
     -- TODO REMOVE
     var_dump( errmsg)

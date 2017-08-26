@@ -50,6 +50,18 @@ function User(id, birth_date, gender, first_name, last_name, email)
     return self
 end
 
+
+function createUserFromRedisId(userId, redis)
+
+    local userRD, err = redis:hgetall("users:" .. userId)
+
+    if err == nil then
+        return createUserFromRedisData(userRD)
+    else
+        return false;
+    end
+end
+
 function createUserFromRedisData(redisData)
     if (canCreateUserFromRedisData(redisData)) then
         local userObjHashTable = {};
