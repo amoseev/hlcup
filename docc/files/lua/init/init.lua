@@ -8,7 +8,7 @@ local redisClass = require "redis"
 local redis = redisClass.connect("0.0.0.0", 6379)
 
 
-function readAll(path)
+local function readAll(path)
     local file = io.open(dirname .. '/' .. path, "rb") -- r read mode and b binary mode
     if not file then return nil end
     local content = file:read "*a" -- *a or *all reads the whole file

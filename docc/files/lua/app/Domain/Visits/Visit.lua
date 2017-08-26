@@ -1,3 +1,5 @@
+require "app.Domain.Locations.Location"
+
 function Visit(id, user, location, visited_at, mark)
     -- the new instance
     local self = {
@@ -132,8 +134,8 @@ function saveVisitToRedis(visit, redis)
         redis:sadd(key, visit.id())
 
         --список мест, которые посетил пользователь для конкретной локации
-        key = "user_visits:" ..  visit.user().. ":location:" .. visit.location()
-        redis:sadd(key, visit.id())
+        -- key = "user_visits:" ..  visit.user().. ":location:" .. visit.location()
+        -- redis:sadd(key, visit.id())
 
         -- упорядоченный по дате список визитов пользователя
         key = "user_visits:" ..  visit.user().. ":visited_at"

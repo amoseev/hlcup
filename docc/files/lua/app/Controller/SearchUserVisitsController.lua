@@ -11,6 +11,62 @@ require "app.Domain.Users.User"
 require "app.Domain.Locations.Location"
 require "app.Domain.Visits.Visit"
 
+local function isemptyString(s)
+    return s == nil or s == ''
+end
+
+local function isEmptyArray(arr)
+    return next(arr) == nil
+end
+
+local function getVisitIds(user, searchParams, redis)
+    local fromDate, toDate, country, toDistance
+    if (searchParams["fromDate"]) then
+        fromDate = searchParams["fromDate"]
+    else
+        fromDate = "-inf"
+    end
+
+    if (searchParams["toDate"]) then
+        toDate = searchParams["toDate"]
+    else
+        toDate = "+inf"
+    end
+
+    if (searchParams["country"]) then
+        country = searchParams["country"]
+    else
+        country = false
+    end
+
+    if (searchParams["toDistance"]) then
+        toDistance = searchParams["toDistance"]
+    else
+        toDistance = false
+    end
+
+    local visitIds
+    -- если только диапазон - то просто упорядоченные визиты пользователя
+    if (toDistance == false and country == false) then
+        visitIds =  redis:zrangebyscore("user_visits:" .. user.id() ..":visited_at", fromDate , toDate)
+        var_dump(visitIds)
+    end
+    -- если только диапазон - то просто упорядоченные визиты пользователя
+    if (toDistance == false and country) then
+        local tmpkey = "tmpkey_" .. math.random(1000000000)
+        local keycountry = "user_visits:" .. user.id() .. ":country:" .. country
+        local keyDate =  "ZRANGEBYSCORE user_visits:" .. user.id() .. ":visited_at" .. " ".. fromDate .. " " .. toDate
+        visitIds = redis:zinterstore(tmpkey, 2, keycountry, keyDate, "AGGREGATE MAX")
+    end
+
+    if (visitIds == nil) then
+        visitIds = {}
+    end
+
+    return visitIds
+end
+
+
 function SearchUserVisitsController()
     -- the new instance
     local self = {
@@ -20,6 +76,7 @@ function SearchUserVisitsController()
     function self.search(userId)
 
         if is_identity(userId) then else ngx.exit(404) end
+        local cjson = require('cjson')
 
         local searchParams = {}
         for k,v in pairs(ngx.req.get_uri_args()) do
@@ -32,7 +89,7 @@ function SearchUserVisitsController()
                 searchParams["toDate"] = tonumber(v)
             end
             if (k == "country") then
-                searchParams["country"] = v
+                if isemptyString(v) then ngx.exit(400) end
             end
             if (k == "toDistance") then
                 if is_identity(v) then else ngx.exit(400) end
@@ -46,33 +103,24 @@ function SearchUserVisitsController()
         local user = createUserFromRedisId(userId, redis)
 
         if user then
-            local fromDate
-            if (searchParams["fromDate"]) then
-                fromDate = searchParams["fromDate"]
-            else
-                fromDate = "-inf"
-            end
-
-            local toDate
-            if (searchParams["toDate"]) then
-                toDate = searchParams["toDate"]
-            else
-                toDate = "+inf"
-            end
-
-            local visitIds = redis:zrangebyscore("user_visits:" .. user.id() ..":visited_at", fromDate , toDate)
-
-
-            local visit_responses = {};
+            local visitIds = getVisitIds(user, searchParams, redis)
+            -- var_dump(visitIds)
+            -- ngx.exit(200)
+            local visit_responses = cjson.decode('[]');
             local visit, location
             for k,visitId in pairs(visitIds) do
                 visit = createVisitFromRedisId(visitId, redis)
                 location = createLocationFromRedisId(visit.location(), redis)
-                visit_responses[k] = {mark = visit.mark(), visited_at= visit.visited_at(),  place = location.place()}
+                visit_responses[k] = {mark = visit.mark(), visited_at= visit.visited_at(),  place = location.place(), distance = location.distance(), country = location.country(), }
             end
 
-            local cjson = require('cjson')
-            ngx.say(cjson.encode({visits = visit_responses}))
+            if (isEmptyArray(visit_responses)) then
+                -- просто баг cjson. не хочется тратить время
+                ngx.say('{"visits": []}')
+            else
+                ngx.say(cjson.encode({visits = visit_responses}))
+            end
+
         else
             ngx.status = 404
             ngx.print("Not found!")

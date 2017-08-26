@@ -107,4 +107,8 @@ function saveLocationToRedis(location, redis)
         local key = "locations:" ..  location.id()
         redis:hmset(key, "id", location.id(), "distance",location.distance(), "city", location.city(), "place",location.place(),  "country", location.country())
     end
+
+    -- todo При смене странцы локации изменить
+    -- key = "user_visits:" ..  visit.user().. ":country:" .. location.country()
+    -- docc/files/lua/app/Domain/Visits/Visit.lua:137
 end
