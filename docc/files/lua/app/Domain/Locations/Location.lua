@@ -47,8 +47,7 @@ end
 
 function createLocationFromRedisId(locationId, redis)
 
-    local visitRD, err = redis:hgetall("locations:" .. locationId)
-
+    local visitRD, err = redis:hgetall("locations:" .. tonumber(locationId))
     if err == nil then
         return createLocationFromRedisData(visitRD)
     else
@@ -59,19 +58,24 @@ end
 
 function createLocationFromRedisData(redisData)
     if (canCreateLocationFromRedisData(redisData)) then
-        --local locationObjHashTable = {};
-        --local propertyTemp;
-        --local isPropertyTemp = true;
-        --for k,v in pairs(redisData) do
-        --    if isPropertyTemp then
-        --        propertyTemp = v
-        --        isPropertyTemp = false
-        --    else
-        --        locationObjHashTable[propertyTemp] = v
-        --        isPropertyTemp = true
-        --    end
-        --end
-        local locationObjHashTable = redisData
+        local locationObjHashTable = {};
+        -- Это полный треш, но два драйвера редиса (nginx.redis и redis-lua(консоль luarocks) по разному возвращают значения !)
+        if(redisData["id"]) then
+            locationObjHashTable = redisData
+        else
+            local propertyTemp;
+            local isPropertyTemp = true;
+            for k,v in pairs(redisData) do
+                if isPropertyTemp then
+                    propertyTemp = v
+                    isPropertyTemp = false
+                else
+                    locationObjHashTable[propertyTemp] = v
+                    isPropertyTemp = true
+                end
+            end
+        end
+
         return Location(locationObjHashTable['id'], locationObjHashTable["distance"], locationObjHashTable["city"], locationObjHashTable["place"], locationObjHashTable["country"])
     else
         return false;

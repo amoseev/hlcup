@@ -48,15 +48,19 @@ local function getVisitIds(user, searchParams, redis)
     local visitIds
     -- если только диапазон - то просто упорядоченные визиты пользователя
     if (toDistance == false and country == false) then
+       -- var_dump(searchParams)
         visitIds =  redis:zrangebyscore("user_visits:" .. user.id() ..":visited_at", fromDate , toDate)
-        var_dump(visitIds)
     end
     -- если только диапазон - то просто упорядоченные визиты пользователя
-    if (toDistance == false and country) then
+    if (toDistance == false and country ~= false) then
+        var_dump(2)
         local tmpkey = "tmpkey_" .. math.random(1000000000)
         local keycountry = "user_visits:" .. user.id() .. ":country:" .. country
-        local keyDate =  "ZRANGEBYSCORE user_visits:" .. user.id() .. ":visited_at" .. " ".. fromDate .. " " .. toDate
+        local keyDate =  "user_visits:" .. user.id() .. ":visited_at"
         visitIds = redis:zinterstore(tmpkey, 2, keycountry, keyDate, "AGGREGATE MAX")
+
+        var_dump({visitIds = visitIds})
+        ngx.exit(200)
     end
 
     if (visitIds == nil) then
@@ -90,6 +94,7 @@ function SearchUserVisitsController()
             end
             if (k == "country") then
                 if isemptyString(v) then ngx.exit(400) end
+                searchParams["country"] = (v)
             end
             if (k == "toDistance") then
                 if is_identity(v) then else ngx.exit(400) end
@@ -104,14 +109,13 @@ function SearchUserVisitsController()
 
         if user then
             local visitIds = getVisitIds(user, searchParams, redis)
-            -- var_dump(visitIds)
-            -- ngx.exit(200)
             local visit_responses = cjson.decode('[]');
             local visit, location
             for k,visitId in pairs(visitIds) do
                 visit = createVisitFromRedisId(visitId, redis)
                 location = createLocationFromRedisId(visit.location(), redis)
-                visit_responses[k] = {mark = visit.mark(), visited_at= visit.visited_at(),  place = location.place(), distance = location.distance(), country = location.country(), }
+
+                visit_responses[k] = {mark = visit.mark(), visited_at= visit.visited_at(),  place = location.place(), distance = location.distance(), country = location.country()}
             end
 
             if (isEmptyArray(visit_responses)) then
