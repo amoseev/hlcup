@@ -9,55 +9,56 @@ function VisitController()
     function self.get(visitId)
         if is_identity(visitId) then else ngx.exit(400) end
 
-        local redis = require "nginx.redis"
-        local red = redis:new()
-        local ok, err = red:connect("0.0.0.0", 6379)
-        local visitRD, err = red:hgetall("visits:" .. visitId)
+        local redis = self.getRedis()
+        local visit = createVisitFromRedisId(visitId, redis)
+        if visit then
+            ngx.say(visit.toJson())
+        else
+            ngx.status = 404
+            ngx.print("Not found!")
+            return
+        end
+    end
 
-        if err == nil then
-            if canCreateVisitFromRedisData(visitRD) then
-                local visit = createVisitFromRedisData(visitRD)
-                ngx.say(visit.toJson())
+    function self.update(visitId, jsonString)
+        if (visitId ~= 'new') then
+            if is_identity(visitId) then else ngx.exit(400)  end
+        end
+        local redis = self.getRedis()
+        local cjson = require('cjson')
+        local tableVisit = cjson.decode(jsonString)
+        if tableVisit then
+            if (visitId == 'new') then
+                local entityExisted = createVisitFromRedisId(tableVisit["id"], redis)
+                if (entityExisted) then
+                    ngx.exit(400) -- уже существует visit с ид
+                end
             else
-                ngx.status = 404
-                ngx.print("Not found!")
-                return
+                tableVisit["id"] = visitId
+            end
+            local visit = createVisitFromTableParsedJson(tableVisit)
+            if visit then
+                saveVisitToRedis(visit, redis)
+            else
+                -- ngx.log(ngx.ERROR, "cant create visit from json string " .. jsonString)
+                ngx.exit(400)
             end
         else
-            ngx.status = ngx.ERROR
-            ngx.log(ngx.ERROR, err)
+            -- ngx.log(ngx.ERROR, "json decode error")
+            ngx.exit(400)
         end
 
     end
 
-    function self.update(visitId, jsonString)
-        if is_identity(visitId) then else ngx.exit(400)  end
-
-        local redis = require "nginx.redis"
-        local red = redis:new()
-        local ok, err = red:connect("0.0.0.0", 6379)
+    function self.getRedis()
+        local redisIns = require "nginx.redis"
+        local redis = redisIns:new()
+        local ok, err = redis:connect("0.0.0.0", 6379)
 
         if err == nil then
-
-            local cjson = require('cjson')
-            local tableVisit = cjson.decode(jsonString)
-            if tableVisit then
-                tableVisit["id"] = visitId
-                local visit = createVisitFromTableParsedJson(tableVisit)
-                if visit then
-                    saveVisitToRedis(visit, redis)
-                else
-                    -- ngx.log(ngx.ERROR, "cant create visit from json string " .. jsonString)
-                    ngx.exit(400)
-                end
-            else
-                -- ngx.log(ngx.ERROR, "json decode error")
-                ngx.exit(400)
-            end
+            return redis
         else
-            -- todo-deploy
-            ngx.log(ngx.ERROR, err)
-            ngx.exit(500)
+            ngx.say(err)
         end
     end
 

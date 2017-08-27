@@ -58,6 +58,8 @@ function UserController()
 
         if err == nil then
             return redis
+        else
+            ngx.say(err)
         end
     end
 

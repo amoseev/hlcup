@@ -45,20 +45,25 @@ r:match({
         end
     },
     POST = {
-        ["/users/:id"] = function(params)
-            require 'app.Controller.UserController'
-            local controller = UserController()
-            return controller.update(params.id, getPostBody())
-        end,
         ["/users/new"] = function(params)
             require 'app.Controller.UserController'
             local controller = UserController()
             return controller.update("new", getPostBody())
         end,
+        ["/users/:id"] = function(params)
+            require 'app.Controller.UserController'
+            local controller = UserController()
+            return controller.update(params.id, getPostBody())
+        end,
         ["/locations/:id"] = function(params)
             require 'app.Controller.LocationController'
             local controller = LocationController()
             return controller.update(params.id, getPostBody())
+        end,
+        ["/visits/new"] = function(params)
+            require 'app.Controller.VisitController'
+            local controller = VisitController()
+            return controller.update("new", getPostBody())
         end,
         ["/visits/:id"] = function(params)
             require 'app.Controller.VisitController'
