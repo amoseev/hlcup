@@ -108,22 +108,15 @@ function saveVisitToRedis(visit, redis)
     local key
     if visit ~= false then
 
-        local visitRD, err = redis:hgetall("visits:" .. visit.id())
-        if err == nil then
-            local visitOld = createVisitFromRedisData(visitRD)
-            if (visitOld ~= false) then
-                --Общий список мест, которые посетил пользователь.
-                key = "user_visits:" ..  visit.user()
-                redis:srem(key, visit.id())
+        local visitOld = createVisitFromRedisId(visit.id(), redis)
+        if (visitOld ~= false) then
+            --список мест, которые посетил пользователь для конкретной локации
+            key = "user_visits:" ..  visit.user().. ":location:" .. visit.location()
+            redis:srem(key, visit.id())
 
-                --список мест, которые посетил пользователь для конкретной локации
-                key = "user_visits:" ..  visit.user().. ":location:" .. visit.location()
-                redis:srem(key, visit.id())
-
-                -- упорядоченный по дате список визитов пользователя
-                key = "user_visits:" ..  visit.user().. ":visited_at:" .. visit.visited_at()
-                redis:zrem(key, visit.id())
-            end
+            -- упорядоченный по дате список визитов пользователя
+            key = "user_visits:" ..  visit.user().. ":visited_at" .. visit.visited_at()
+            redis:zrem(key, visit.id())
         end
 
         key = "visits:" ..  visit.id()
