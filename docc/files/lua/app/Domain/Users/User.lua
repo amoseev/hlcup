@@ -2,8 +2,8 @@ function User(id, birth_date, gender, first_name, last_name, email)
     -- the new instance
     local self = {
             fields = {
-                id = id,
-                birth_date = birth_date,
+                id = tonumber(id),
+                birth_date = tonumber(birth_date),
                 gender = gender,
                 first_name = first_name,
                 last_name = last_name,
@@ -52,6 +52,7 @@ end
 
 
 function createUserFromRedisId(userId, redis)
+    if (is_identity(userId)) then else ngx.exit(400) end
 
     local userRD, err = redis:hgetall("users:" .. userId)
     if err == nil then

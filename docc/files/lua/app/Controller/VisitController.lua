@@ -37,7 +37,18 @@ function VisitController()
                 tableVisit["id"] = visitId
             end
             local visit = createVisitFromTableParsedJson(tableVisit)
+
             if visit then
+                local user = createUserFromRedisId(visit.user(), redis) --валидные связи
+                if user then else ngx.exit(400)  end
+                local location = createLocationFromRedisId(visit.location(), redis) -- валидные связи
+                if location then else ngx.exit(400)  end
+                if is_identity(visit.mark()) then else ngx.exit(400)  end
+                if (visit.mark() > 5 or visit.mark() < 0) then
+                    ngx.exit(400)
+                end
+                if is_identity(visit.visited_at()) then else ngx.exit(400)  end
+
                 saveVisitToRedis(visit, redis)
             else
                 -- ngx.log(ngx.ERROR, "cant create visit from json string " .. jsonString)

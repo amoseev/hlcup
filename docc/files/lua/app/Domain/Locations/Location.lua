@@ -2,8 +2,8 @@ function Location(id, distance, city, place, country)
     -- the new instance
     local self = {
         fields = {
-            id = id,
-            distance = distance,
+            id = tonumber(id),
+            distance = tonumber(distance),
             city = city,
             place = place,
             country = country
@@ -46,6 +46,7 @@ function Location(id, distance, city, place, country)
 end
 
 function createLocationFromRedisId(locationId, redis)
+    if (is_identity(locationId)) then else ngx.exit(400) end
 
     local visitRD, err = redis:hgetall("locations:" .. tonumber(locationId))
     if err == nil then

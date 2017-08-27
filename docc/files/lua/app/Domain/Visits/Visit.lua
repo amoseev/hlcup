@@ -2,11 +2,11 @@ function Visit(id, user, location, visited_at, mark)
     -- the new instance
     local self = {
         fields = {
-            id = id,
-            user = user,
-            location = location,
-            visited_at = visited_at,
-            mark = mark
+            id = tonumber(id),
+            user = tonumber(user),
+            location = tonumber(location),
+            visited_at = tonumber(visited_at),
+            mark = tonumber(mark)
         }
     }
 
@@ -46,6 +46,7 @@ function Visit(id, user, location, visited_at, mark)
 end
 
 function createVisitFromRedisId(visitId, redis)
+    if (is_identity(visitId)) then else ngx.exit(400) end
 
     local visitRD, err = redis:hgetall("visits:" .. visitId)
     if err == nil then
