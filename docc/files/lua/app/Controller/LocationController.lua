@@ -1,6 +1,4 @@
 -- @link http://lua-users.org/wiki/ObjectOrientationTutorial
-require "app.Domain.Locations.Location"
-
 
 function LocationController()
     -- the new instance

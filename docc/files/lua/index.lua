@@ -1,4 +1,7 @@
 require "vendor.functions"
+require "app.Domain.Users.User"
+require "app.Domain.Locations.Location"
+require "app.Domain.Visits.Visit"
 
 local function getPostBody()
     for key, val in pairs(ngx.req.get_post_args()) do

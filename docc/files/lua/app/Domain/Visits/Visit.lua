@@ -1,5 +1,3 @@
-require "app.Domain.Locations.Location"
-
 function Visit(id, user, location, visited_at, mark)
     -- the new instance
     local self = {
@@ -132,6 +130,11 @@ function saveVisitToRedis(visit, redis)
         --упорядоченный по расстоянию список визитов пользователя
         key = "user_visits:" ..  visitOld.user().. ":distance"
         redis:zrem(key, visitOld.id())
+
+        -- усписок визитов для локации всех пользователей
+        key = "user_visits:location:" .. visit.location()
+        redis:srem(key, visit.id())
+
     end
 
     key = "visits:" ..  visit.id()
@@ -140,7 +143,6 @@ function saveVisitToRedis(visit, redis)
     -- упорядоченный по дате список визитов пользователя
     key = "user_visits:" ..  visit.user().. ":visited_at"
     redis:zadd(key, visit.visited_at(), visit.id())
-
 
     local location = createLocationFromRedisId(visit.location(), redis)
     --список мест, которые посетил пользователь для конкретной страны
@@ -151,4 +153,32 @@ function saveVisitToRedis(visit, redis)
     key = "user_visits:" ..  visit.user().. ":distance"
     redis:zadd(key, location.distance(), visit.id())
 
+    -- усписок визитов для локации всех пользователей
+    key = "user_visits:location:" .. visit.location()
+    redis:sadd(key, visit.id())
+end
+
+function updateVisitsLocationKeys(location, locationOld, redis)
+    if (location.distance() ~= locationOld.distance() or location.country() ~= locationOld.country()) then
+        local key
+        key = "user_visits:location:" .. location.id()
+        local visitIds = redis:smembers(key)
+        local visit
+        for k, visitId in pairs(visitIds) do
+            visit = createVisitFromRedisId(visitId, redis)
+            if (location.country() ~= locationOld.country()) then
+                -- old remove
+                key = "user_visits:" ..  visit.user().. ":country:" .. locationOld.country()
+                redis:srem(key, visit.id())
+                -- new add
+                key = "user_visits:" ..  visit.user().. ":country:" .. location.country()
+                redis:sadd(key, visit.id())
+            end
+            if (location.distance() ~= locationOld.distance()) then
+                key = "user_visits:" ..  visit.user().. ":distance"
+                redis:zrem(key, visit.id()) -- old remove
+                redis:zadd(key, location.distance(), visit.id()) -- new add
+            end
+        end
+    end
 end

@@ -1,5 +1,4 @@
 -- @link http://lua-users.org/wiki/ObjectOrientationTutorial
-require "app.Domain.Users.User"
 
 function UserController()
     -- the new instance

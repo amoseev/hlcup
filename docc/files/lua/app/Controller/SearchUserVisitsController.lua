@@ -7,10 +7,6 @@
 -- country - название страны, в которой находятся интересующие достопримечательности
 -- toDistance - возвращать только те места, у которых расстояние от города меньше этого параметра
 --
-require "app.Domain.Users.User"
-require "app.Domain.Locations.Location"
-require "app.Domain.Visits.Visit"
-
 
 local function getVisitIds(user, searchParams, redis)
     local fromDate, toDate, country, toDistance

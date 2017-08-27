@@ -15,8 +15,6 @@ function VisitController()
         local visitRD, err = red:hgetall("visits:" .. visitId)
 
         if err == nil then
-            require "app.Domain.Visits.Visit"
-
             if canCreateVisitFromRedisData(visitRD) then
                 local visit = createVisitFromRedisData(visitRD)
                 ngx.say(visit.toJson())
@@ -40,7 +38,6 @@ function VisitController()
         local ok, err = red:connect("0.0.0.0", 6379)
 
         if err == nil then
-            require "app.Domain.Visits.Visit"
 
             local cjson = require('cjson')
             local tableVisit = cjson.decode(jsonString)

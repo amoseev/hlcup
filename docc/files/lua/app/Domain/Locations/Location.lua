@@ -111,12 +111,14 @@ function saveLocationToRedis(location, redis)
     if location == false then
         return
     end
-    local key = "locations:" ..  location.id()
+    local key
+
+    local locatioinOld = createLocationFromRedisId(location.id(), redis)
+    if (locatioinOld ~= false) then
+        updateVisitsLocationKeys(location, locatioinOld, redis)
+    end
+
+
+    key = "locations:" ..  location.id()
     redis:hmset(key, location.getFields())
-    -- todo При смене странцы локации изменить
-    -- key = "user_visits:" ..  visit.user().. ":country:" .. location.country()
-    -- docc/files/lua/app/Domain/Visits/Visit.lua:137
-    --
-    --key = "user_visits:" ..  visit.user().. ":distance:" .. location.distance()
-    --redis:zadd(key, location.distance(), visit.id())
 end
