@@ -55,6 +55,11 @@ r:match({
             local controller = UserController()
             return controller.update(params.id, getPostBody())
         end,
+        ["/locations/new"] = function(params)
+            require 'app.Controller.LocationController'
+            local controller = LocationController()
+            return controller.update("new", getPostBody())
+        end,
         ["/locations/:id"] = function(params)
             require 'app.Controller.LocationController'
             local controller = LocationController()

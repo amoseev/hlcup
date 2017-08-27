@@ -9,9 +9,7 @@ function LocationController()
     function self.get(locationId)
         if is_identity(locationId) then else ngx.exit(400) end
 
-        local redis = require "nginx.redis"
-        local red = redis:new()
-        local ok, err = red:connect("0.0.0.0", 6379)
+        local redis = self.getRedis()
         local location = createLocationFromRedisId(locationId, redis)
 
         if location then
@@ -24,35 +22,49 @@ function LocationController()
     end
 
     function self.update(locationId, jsonString)
-        -- todo обработать изменение страны
-        if is_identity(locationId) then else ngx.exit(400)  end
 
+        if (locationId ~= 'new') then
+            if is_identity(locationId) then else ngx.exit(400)  end
+        end
+        local redis = self.getRedis()
+        local cjson = require('cjson')
+        local tableLocation = cjson.decode(jsonString)
+        if tableLocation then
+            if (locationId == 'new') then
+                local enityiExisted = createLocationFromRedisId(tableLocation["id"], redis)
+                if (enityiExisted) then
+                    ngx.exit(400) -- уже существует user с ид tableUser["id"]
+                end
+            else
+                tableLocation["id"] = locationId
+            end
+            local location = createLocationFromTableParsedJson(tableLocation)
+            if location then
+                if (location.distance() < 0) then
+                    ngx.exit(400)
+                end
+                saveLocationToRedis(location, redis)
+            else
+                -- ngx.log(ngx.ERROR, "cant create location from json string " .. jsonString)
+                ngx.exit(400)
+            end
+        else
+            -- ngx.log(ngx.ERROR, "json decode error")
+            ngx.exit(400)
+        end
+
+    end
+
+
+    function self.getRedis()
         local redisIns = require "nginx.redis"
         local redis = redisIns:new()
         local ok, err = redis:connect("0.0.0.0", 6379)
 
         if err == nil then
-            require "app.Domain.Locations.Location"
-
-            local cjson = require('cjson')
-            local tableLocation = cjson.decode(jsonString)
-            if tableLocation then
-                tableLocation["id"] = locationId
-                local location = createLocationFromTableParsedJson(tableLocation)
-                if location then
-                    saveLocationToRedis(location, redis)
-                else
-                    -- ngx.log(ngx.ERROR, "cant create location from json string " .. jsonString)
-                    ngx.exit(400)
-                end
-            else
-                -- ngx.log(ngx.ERROR, "json decode error")
-                ngx.exit(400)
-            end
+            return redis
         else
-            -- todo-deploy
-            ngx.log(ngx.ERROR, err)
-            ngx.exit(500)
+            ngx.say(err)
         end
     end
 
