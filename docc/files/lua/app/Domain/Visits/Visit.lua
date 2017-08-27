@@ -111,12 +111,21 @@ function saveVisitToRedis(visit, redis)
         local visitOld = createVisitFromRedisId(visit.id(), redis)
         if (visitOld ~= false) then
             --список мест, которые посетил пользователь для конкретной локации
-            key = "user_visits:" ..  visit.user().. ":location:" .. visit.location()
-            redis:srem(key, visit.id())
+            key = "user_visits:" ..  visitOld.user().. ":location:" .. visitOld.location()
+            redis:srem(key, visitOld.id())
 
             -- упорядоченный по дате список визитов пользователя
-            key = "user_visits:" ..  visit.user().. ":visited_at" .. visit.visited_at()
-            redis:zrem(key, visit.id())
+            key = "user_visits:" ..  visitOld.user().. ":visited_at" .. visitOld.visited_at()
+            redis:zrem(key, visitOld.id())
+
+            local location = createLocationFromRedisId(visitOld.location(), redis)
+            --список мест, которые посетил пользователь для конкретной страны
+            key = "user_visits:" ..  visitOld.user().. ":country:" .. location.country()
+            redis:srem(key, visitOld.id())
+
+            --упорядоченный по расстоянию список визитов пользователя
+            key = "user_visits:" ..  visitOld.user().. ":distance"
+            redis:zrem(key, visitOld.id())
         end
 
         key = "visits:" ..  visit.id()
