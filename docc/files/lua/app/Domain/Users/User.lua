@@ -64,15 +64,19 @@ end
 function createUserFromRedisData(redisData)
     if (canCreateUserFromRedisData(redisData)) then
         local userObjHashTable = {};
-        local propertyTemp;
-        local isPropertyTemp = true;
-        for k,v in pairs(redisData) do
-            if isPropertyTemp then
-                propertyTemp = v
-                isPropertyTemp = false
-            else
-                userObjHashTable[propertyTemp] = v
-                isPropertyTemp = true
+        if(redisData["id"]) then
+            userObjHashTable = redisData
+        else
+            local propertyTemp;
+            local isPropertyTemp = true;
+            for k,v in pairs(redisData) do
+                if isPropertyTemp then
+                    propertyTemp = v
+                    isPropertyTemp = false
+                else
+                    userObjHashTable[propertyTemp] = v
+                    isPropertyTemp = true
+                end
             end
         end
         return User(userObjHashTable['id'], userObjHashTable["birth_date"], userObjHashTable["gender"], userObjHashTable["first_name"], userObjHashTable["last_name"], userObjHashTable["email"])

@@ -50,7 +50,6 @@ end
 function createVisitFromRedisId(visitId, redis)
 
     local visitRD, err = redis:hgetall("visits:" .. visitId)
-
     if err == nil then
         return createVisitFromRedisData(visitRD)
     else
@@ -62,15 +61,19 @@ end
 function createVisitFromRedisData(redisData)
     if (canCreateVisitFromRedisData(redisData)) then
         local visitObjHashTable = {};
-        local propertyTemp;
-        local isPropertyTemp = true;
-        for k,v in pairs(redisData) do
-            if isPropertyTemp then
-                propertyTemp = v
-                isPropertyTemp = false
-            else
-                visitObjHashTable[propertyTemp] = v
-                isPropertyTemp = true
+        if(redisData["id"]) then
+            visitObjHashTable = redisData
+        else
+            local propertyTemp;
+            local isPropertyTemp = true;
+            for k,v in pairs(redisData) do
+                if isPropertyTemp then
+                    propertyTemp = v
+                    isPropertyTemp = false
+                else
+                    visitObjHashTable[propertyTemp] = v
+                    isPropertyTemp = true
+                end
             end
         end
         return Visit(visitObjHashTable['id'], visitObjHashTable["user"], visitObjHashTable["location"], visitObjHashTable["visited_at"], visitObjHashTable["mark"], visitObjHashTable["email"])
@@ -105,44 +108,47 @@ function canCreateVisitFromTableParsedJson(tableVisit)
 end
 
 function saveVisitToRedis(visit, redis)
+    if visit == false then
+        return
+    end
+
     local key
-    if visit ~= false then
+    local visitOld = createVisitFromRedisId(visit.id(), redis)
 
-        local visitOld = createVisitFromRedisId(visit.id(), redis)
-        if (visitOld ~= false) then
-            --список мест, которые посетил пользователь для конкретной локации
-            key = "user_visits:" ..  visitOld.user().. ":location:" .. visitOld.location()
-            redis:srem(key, visitOld.id())
-
-            -- упорядоченный по дате список визитов пользователя
-            key = "user_visits:" ..  visitOld.user().. ":visited_at" .. visitOld.visited_at()
-            redis:zrem(key, visitOld.id())
-
-            local location = createLocationFromRedisId(visitOld.location(), redis)
-            --список мест, которые посетил пользователь для конкретной страны
-            key = "user_visits:" ..  visitOld.user().. ":country:" .. location.country()
-            redis:srem(key, visitOld.id())
-
-            --упорядоченный по расстоянию список визитов пользователя
-            key = "user_visits:" ..  visitOld.user().. ":distance"
-            redis:zrem(key, visitOld.id())
-        end
-
-        key = "visits:" ..  visit.id()
-        redis:hmset(key, visit.getFields())
+    if (visitOld ~= false) then
+        --список мест, которые посетил пользователь для конкретной локации
+        key = "user_visits:" ..  visitOld.user().. ":location:" .. visitOld.location()
+        redis:srem(key, visitOld.id())
 
         -- упорядоченный по дате список визитов пользователя
-        key = "user_visits:" ..  visit.user().. ":visited_at"
-        redis:zadd(key, visit.visited_at(), visit.id())
+        key = "user_visits:" ..  visitOld.user().. ":visited_at" .. visitOld.visited_at()
+        redis:zrem(key, visitOld.id())
 
-
-        local location = createLocationFromRedisId(visit.location(), redis)
+        local location = createLocationFromRedisId(visitOld.location(), redis)
         --список мест, которые посетил пользователь для конкретной страны
-        key = "user_visits:" ..  visit.user().. ":country:" .. location.country()
-        redis:sadd(key, visit.id())
+        key = "user_visits:" ..  visitOld.user().. ":country:" .. location.country()
+        redis:srem(key, visitOld.id())
 
         --упорядоченный по расстоянию список визитов пользователя
-        key = "user_visits:" ..  visit.user().. ":distance"
-        redis:zadd(key, location.distance(), visit.id())
+        key = "user_visits:" ..  visitOld.user().. ":distance"
+        redis:zrem(key, visitOld.id())
     end
+
+    key = "visits:" ..  visit.id()
+    redis:hmset(key, visit.getFields())
+
+    -- упорядоченный по дате список визитов пользователя
+    key = "user_visits:" ..  visit.user().. ":visited_at"
+    redis:zadd(key, visit.visited_at(), visit.id())
+
+
+    local location = createLocationFromRedisId(visit.location(), redis)
+    --список мест, которые посетил пользователь для конкретной страны
+    key = "user_visits:" ..  visit.user().. ":country:" .. location.country()
+    redis:sadd(key, visit.id())
+
+    --упорядоченный по расстоянию список визитов пользователя
+    key = "user_visits:" ..  visit.user().. ":distance"
+    redis:zadd(key, location.distance(), visit.id())
+
 end
