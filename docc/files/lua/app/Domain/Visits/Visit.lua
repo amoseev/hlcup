@@ -210,6 +210,21 @@ function saveVisitToRedis(visit, redis)
     -- усписок визитов для локации всех пользователей
     key = "user_visits:location:" .. visit.location()
     redis:sadd(key, visit.id())
+
+    --упорядоченный по времени список визитов локации
+    key = "mark:" ..  visit.location().. ":visited_at"
+    redis:zadd(key, visit.visited_at(), visit.id())
+
+    local user = createUserFromRedisId(visit.user(), redis)
+    local age = os.date("%Y",user.birth_date()) -  os.date("%Y",1502881955) --1502881955 from options
+
+    --упорядоченный по возрасту юзеров список визитов локации
+    key = "mark:" ..  visit.location().. ":age"
+    redis:zadd(key, age, visit.id())
+
+    --упорядоченный по времени список визитов локации
+    key = "mark:" ..  visit.location().. ":gender:" .. user.gender()
+    redis:sadd(key, visit.id())
 end
 
 function updateVisitsLocationKeys(location, locationOld, redis)

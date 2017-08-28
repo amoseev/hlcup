@@ -132,7 +132,7 @@ function SearchUserVisitsController()
                 visit = createVisitFromRedisId(visitId, redis)
                 location = createLocationFromRedisId(visit.location(), redis)
 
-                visit_responses[k] = {visit_id = visit.id(), location=location.id(), mark = visit.mark(), visited_at= visit.visited_at(),  place = location.place(), distance = location.distance(), country = location.country()}
+                visit_responses[k] = {mark = visit.mark(), visited_at= visit.visited_at(),  place = location.place()}
             end
 
             if (isEmptyArray(visit_responses)) then
