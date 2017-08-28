@@ -21,6 +21,8 @@ function Location(id, distance, city, place, country)
         return self.fields
     end
 
+
+
     function self.id()
         return self.fields["id"]
     end
@@ -29,18 +31,49 @@ function Location(id, distance, city, place, country)
         return self.fields["distance"]
     end
 
+    function self.setDistance(distance)
+        if (is_identity(distance) and distance > 0) then
+            self.fields["distance"] = distance
+        else
+            ngx.exit(400)
+        end
+    end
+
     function self.city()
         return self.fields["city"]
+    end
+
+    function self.setCity(city)
+        self.fields["city"] = city
     end
 
     function self.place()
         return self.fields["place"]
     end
 
+    function self.setPlace(distance)
+        self.fields["place"] = place
+    end
+
     function self.country()
         return self.fields["country"]
     end
 
+
+    function self.setFromTable(tableLocation)
+        if (tableLocation["distance"]) then
+            self.setDistance(tableLocation["distance"])
+        end
+        if (tableLocation["city"]) then
+            self.fields["city"] = tableLocation["city"]
+        end
+        if (tableLocation["place"]) then
+            self.fields["place"] = tableLocation["place"]
+        end
+        if (tableLocation["country"]) then
+            self.fields["country"] = tableLocation["country"]
+        end
+    end
     -- return the instance
     return self
 end

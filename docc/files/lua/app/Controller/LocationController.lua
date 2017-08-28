@@ -30,20 +30,24 @@ function LocationController()
         local cjson = require('cjson')
         local tableLocation = cjson.decode(jsonString)
         if tableLocation then
+            local location
             if (locationId == 'new') then
                 local enityiExisted = createLocationFromRedisId(tableLocation["id"], redis)
                 if (enityiExisted) then
                     ngx.exit(400) -- уже существует user с ид tableUser["id"]
                 end
+                location = createLocationFromTableParsedJson(tableLocation)
             else
-                tableLocation["id"] = locationId
+                location = createLocationFromRedisId(locationId, redis)
+                location.setFromTable(tableLocation)
             end
-            local location = createLocationFromTableParsedJson(tableLocation)
+
             if location then
                 if (location.distance() < 0) then
                     ngx.exit(400)
                 end
                 saveLocationToRedis(location, redis)
+                ngx.say("{}")
             else
                 -- ngx.log(ngx.ERROR, "cant create location from json string " .. jsonString)
                 ngx.exit(400)

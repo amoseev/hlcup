@@ -41,6 +41,59 @@ function Visit(id, user, location, visited_at, mark)
         return self.fields["mark"]
     end
 
+    function self.set_user(user)
+        if (is_identity(user) and user > 0) then
+            self.fields["user"] = user
+        else
+            ngx.exit(400)
+        end
+
+
+    end
+
+    function self.set_location(location)
+        if (is_identity(location) and location > 0) then
+            self.fields["location"] = location
+        else
+            ngx.exit(400)
+        end
+
+
+    end
+
+    function self.set_visited_at(visited_at)
+        if (is_identity(visited_at)) then
+            self.fields["visited_at"] = visited_at
+        else
+            ngx.exit(400)
+        end
+
+    end
+
+    function self.set_mark(mark)
+        if (is_identity(mark) and mark >= 0 and mark <=5) then
+            self.fields["mark"] = mark
+        else
+            ngx.exit(400)
+        end
+
+    end
+
+    function self.setFromTable(tableLocation)
+        if (tableLocation["user"]) then
+            self.set_user(tableLocation["user"])
+        end
+        if (tableLocation["location"]) then
+            self.set_location(tableLocation["location"])
+        end
+        if (tableLocation["visited_at"]) then
+            self.set_visited_at(tableLocation["visited_at"])
+        end
+        if (tableLocation["mark"]) then
+            self.set_mark(tableLocation["mark"])
+        end
+    end
+
     -- return the instance
     return self
 end

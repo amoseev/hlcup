@@ -26,8 +26,6 @@ end
 
 
 
-
-
 -- users
 local files = io.popen('/bin/ls ' .. dirname)
 for fileName in files:lines() do

@@ -29,17 +29,21 @@ function UserController()
         local cjson = require('cjson')
         local tableUser = cjson.decode(jsonString)
         if tableUser then
+            local user
             if (userId == 'new') then
                 local userExisted = createUserFromRedisId(tableUser["id"], redis)
                 if (userExisted) then
                     ngx.exit(400) -- уже существует user с ид tableUser["id"]
                 end
+                user = createUserFromTableParsedJson(tableUser)
             else
-                tableUser["id"] = userId
+                user = createUserFromRedisId(userId, redis)
+                user.setFromTable(tableUser)
             end
-            local user = createUserFromTableParsedJson(tableUser)
+
             if user then
                 saveUserToRedis(user, redis)
+                ngx.say("{}")
             else
                 -- ngx.log(ngx.ERROR, "cant create user from json string " .. jsonString)
                 ngx.exit(400)

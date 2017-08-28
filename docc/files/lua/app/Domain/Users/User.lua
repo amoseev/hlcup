@@ -30,6 +30,14 @@ function User(id, birth_date, gender, first_name, last_name, email)
         return self.fields["birth_date"]
     end
 
+    function self.set_birth_date(birth_date)
+        if (is_identity(birth_date)) then
+            self.fields["birth_date"] = birth_date
+        else
+            ngx.exit(400)
+        end
+    end
+
     function self.gender()
         return self.fields["gender"]
     end
@@ -44,6 +52,24 @@ function User(id, birth_date, gender, first_name, last_name, email)
 
     function self.email()
         return self.fields["email"]
+    end
+
+    function self.setFromTable(tableLocation)
+        if (tableLocation["birth_date"]) then
+            self.set_birth_date(tableLocation["birth_date"])
+        end
+        if (tableLocation["gender"]) then
+            self.fields["gender"] = tableLocation["gender"]
+        end
+        if (tableLocation["first_name"]) then
+            self.fields["first_name"] = tableLocation["first_name"]
+        end
+        if (tableLocation["last_name"]) then
+            self.fields["last_name"] = tableLocation["last_name"]
+        end
+        if (tableLocation["email"]) then
+            self.fields["email"] = tableLocation["email"]
+        end
     end
 
     -- return the instance

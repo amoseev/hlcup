@@ -30,9 +30,11 @@ ADD files/lua/ /var/multrix/lua/
 
 RUN chown -R www-data:www-data /var/multrix
 #todo-deploy - remove
-COPY data/data.zip /tmp/data/data.zip
+#COPY data/data_full.zip /tmp/data/data.zip
 
-EXPOSE 80 6379
+
+EXPOSE 80
+#EXPOSE 6379
 
 RUN chmod +x /usr/local/bin/start.sh
 CMD unzip -o /tmp/data/data.zip -d /var/multrix && /etc/init.d/supervisor restart --nodaemon && bash /usr/local/bin/start.sh

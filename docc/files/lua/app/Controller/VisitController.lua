@@ -28,15 +28,17 @@ function VisitController()
         local cjson = require('cjson')
         local tableVisit = cjson.decode(jsonString)
         if tableVisit then
+            local visit
             if (visitId == 'new') then
                 local entityExisted = createVisitFromRedisId(tableVisit["id"], redis)
                 if (entityExisted) then
                     ngx.exit(400) -- уже существует visit с ид
                 end
+                visit = createUserFromTableParsedJson(tableUser)
             else
-                tableVisit["id"] = visitId
+                visit = createVisitFromRedisId(visitId, redis)
+                visit.setFromTable(tableUser)
             end
-            local visit = createVisitFromTableParsedJson(tableVisit)
 
             if visit then
                 local user = createUserFromRedisId(visit.user(), redis) --валидные связи
